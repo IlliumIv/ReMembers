@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<UIAddon>
+	<Name>ReMembers</Name>
+	<AutoStart>true</AutoStart>
+	<ScriptFileRefs>
+		<Item href="/Mods/SampleCommon/SampleAddonBase.lua" />
+		<Item href="Scripts/LibDnD.lua" />
+		<Item href="Scripts/ScriptChatLogExt.lua"/>
+		<Item href="Scripts/ReMembers.lua" />
+	</ScriptFileRefs>
+	<MainFormId>Main</MainFormId>
+	<Forms>
+		<Item>
+			<Id>Main</Id>
+			<Form href="Widgets/MainForm.(WidgetForm).xdb#xpointer(/WidgetForm)" />
+		</Item>
+	</Forms>
+    <author>IlliumIv</author>
+    <localizedNameFileRef href="Name.txt"/>
+    <localizedDescFileRef href="Desc.txt"/>
+</UIAddon>

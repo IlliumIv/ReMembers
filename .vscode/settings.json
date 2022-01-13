@@ -1,0 +1,16 @@
+{
+    "Lua.diagnostics.globals": [
+        "Global",
+        "DnD",
+        "Members",
+        "avatar",
+        "group",
+        "ChatLog",
+        "raid",
+        "common",
+        "mainForm",
+        "KBF_SHIFT",
+        "userMods",
+        "KBF_ALT"
+    ]
+}

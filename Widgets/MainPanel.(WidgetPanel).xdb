@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<WidgetPanel>
+	<Name>MainPanel</Name>
+	<Children>
+		<!-- <Item href="Header.(WidgetTextView).xdb" /> -->
+		<!-- <Item href="Text.(WidgetTextView).xdb" /> -->
+	</Children>
+	<BackLayer href="MainFrame.(WidgetLayerTiledTexture).xdb" />
+	<Placement>
+		<X>
+			<Align>WIDGET_ALIGN_LEFT</Align>
+			<Size>400</Size>
+		</X>
+		<Y>
+			<Align>WIDGET_ALIGN_TOP</Align>
+			<Size>400</Size>
+		</Y>
+	</Placement>
+</WidgetPanel>

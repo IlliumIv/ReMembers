@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<WidgetButton>
+	<Name>Button</Name>
+	<Header>
+		<Prototype href="/Mods/SampleCommon/Button/ButtonRegular.Prototype.(WidgetButton).xdb" />
+	</Header>
+	<Placement>
+		<X>
+			<Align>WIDGET_ALIGN_LEFT</Align>
+			<Size>50</Size>
+		</X>
+		<Y>
+			<Align>WIDGET_ALIGN_TOP</Align>
+			<Size>30</Size>
+		</Y>
+	</Placement>
+	<Variants>
+		<Item>
+			<TextFileRef href="Text.txt" />
+			<Reaction>ReactionLeftClickButtonPressed</Reaction>
+			<ReactionOnUp>true</ReactionOnUp>
+			<ReactionRightClick>ReactionRightClickButtonPressed</ReactionRightClick>
+		</Item>
+	</Variants>
+</WidgetButton>
