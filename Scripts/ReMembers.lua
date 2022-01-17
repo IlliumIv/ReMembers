@@ -1,5 +1,6 @@
-Global('Members', {})
+local reMembers = {}
 local debug = false
+local configSectionName = "ReMembers.List"
 
 function OnLeftClickButtonPressed(params)
 	if DnD.IsDragging() then
@@ -12,16 +13,17 @@ function OnLeftClickButtonPressed(params)
 		if raid.IsExist() then RaidSwap() end
 	else
 		-- LogMembers()
-		Invite(false)
+		Invite()
 	end
 end
 
-function GetCurrentPosByName(name, raidMembers)
+function GetMemberByName(name, raidMembers)
 	for groupKey,_ in pairs(raidMembers) do
-		for memberKey,_ in pairs(raidMembers[groupKey]) do
-			local IsEqualNames = userMods.FromWString(raidMembers[groupKey][memberKey].name) == userMods.FromWString(name)
+		for memberKey, member in pairs(raidMembers[groupKey]) do
+			local IsEqualNames = userMods.FromWString(member.name) == userMods.FromWString(name)
 			if IsEqualNames then
-				return { groupNumber = groupKey, positionNumber = memberKey }
+				member.Pos = {groupNumber = groupKey, positionNumber = memberKey}
+				return member
 			end
 		end
 	end
@@ -30,44 +32,44 @@ end
 
 function RaidSwap()
 	if debug then ChatLog("---------------------------------") end
-	if Members.List == nil or #Members.List == 0 then return end
-	for key, member in pairs(Members.List) do
+	if reMembers.List == nil or #reMembers.List == 0 then return end
+	for key, member in pairs(reMembers.List) do
 		if not member.IsSwapped == true then
 			local raidMembers = raid.GetMembers()
-			local currentPos = GetCurrentPosByName(member.name, raidMembers)
+			local _member = GetMemberByName(member.name, raidMembers)
 			if debug then ChatLog("Processing " .. userMods.FromWString(member.name)) end
-			if currentPos ~= nil then
-				local shouldSwap = currentPos.groupNumber ~= member.Pos.groupNumber or currentPos.positionNumber ~= member.Pos.positionNumber
+			if _member ~= nil then
+				local shouldSwap = _member.Pos.groupNumber ~= member.Pos.groupNumber or _member.Pos.positionNumber ~= member.Pos.positionNumber
 				if debug then ChatLog("Should swap: " .. tostring(shouldSwap)) end
 				if shouldSwap then
 
 					local raidLenght = Lenght(raidMembers) - 1
 					if debug then ChatLog("Raid length: " .. tostring(raidLenght) .. ". Member group number: " .. tostring(member.Pos.groupNumber)) end
 					if debug then ChatLog("Remembered pos: " .. tostring(member.Pos.groupNumber) .. ":" .. tostring(member.Pos.positionNumber)) end
-					if not Members.IsEventRaidChangedProcessed then
-						Members.IsEventRaidChangedProcessed = true
+					if not reMembers.IsEventRaidChangedProcessed then
+						reMembers.IsEventRaidChangedProcessed = true
 						common.RegisterEventHandler(OnRaidChanged, "EVENT_RAID_CHANGED")
 					end
 					local shouldCreateNewGroup = raidLenght < member.Pos.groupNumber
 					if debug then ChatLog("Should create new group: " .. tostring(shouldCreateNewGroup)) end
 					if shouldCreateNewGroup then
 						if debug then ChatLog("Isolate " .. userMods.FromWString(member.name)) end
-						raid.IsolateMember(raidMembers[currentPos.groupNumber][currentPos.positionNumber].uniqueId) return end
+						raid.IsolateMember(_member.uniqueId) return end
 					local toSwap = raidMembers[member.Pos.groupNumber][member.Pos.positionNumber]
 					if toSwap ~= nil then
 						if debug then ChatLog("Swap " .. userMods.FromWString(member.name) .. " and " .. userMods.FromWString(toSwap.name)) end
-						Members.List[key].IsSwapped = true
-						raid.SwapMembers(toSwap.uniqueId, member.uniqueId) return
+						reMembers.List[key].IsSwapped = true
+						raid.SwapMembers(toSwap.uniqueId, _member.uniqueId) return
 					else
 						if debug then ChatLog("Move " .. userMods.FromWString(member.name) .. " to groupNumber " .. tostring(member.Pos.groupNumber)) end
-						raid.MoveMemberToGroup(member.uniqueId, member.Pos.groupNumber) return end
+						raid.MoveMemberToGroup(_member.uniqueId, member.Pos.groupNumber) return end
 				end
 				if debug then ChatLog("---") end
 			end
 		end
 	end
-	for key,_ in pairs(Members.List) do Members.List[key].IsSwapped = false end
-	Members.IsEventRaidChangedProcessed = nil
+	for key,_ in pairs(reMembers.List) do reMembers.List[key].IsSwapped = false end
+	reMembers.IsEventRaidChangedProcessed = nil
 end
 
 function Lenght(T)
@@ -77,49 +79,55 @@ function Lenght(T)
 end
 
 function OnRaidChanged()
-	if not Members.IsEventRaidChangedProcessed then common.UnRegisterEventHandler(OnRaidChanged, "EVENT_RAID_CHANGED") return end
+	if not reMembers.IsEventRaidChangedProcessed then common.UnRegisterEventHandler(OnRaidChanged, "EVENT_RAID_CHANGED") return end
 	if debug then ChatLog("EVENT_RAID_CHANGED received") end
 	RaidSwap()
 end
 
-function Invite(shouldInviteToRaid)
-	if Members.List == nil or #Members.List == 0 then return end
-	if not Members.IsEventGroupAppearedProcessed then common.RegisterEventHandler(OnGroupAppeared, "EVENT_GROUP_APPEARED") end
-	Members.IsEventGroupAppearedProcessed = true
-	if debug then ChatLog("Should Invite To Raid: " .. tostring(shouldInviteToRaid)) end
-	for _, member in pairs(Members.List) do
-		if shouldInviteToRaid then raid.InviteByName(member.name)
-		else group.InviteByName(member.name) end
+function Invite()
+	if reMembers.List == nil or #reMembers.List == 0 then return end
+	if reMembers.IsRaid then
+		if raid.IsExist() then
+			for _, member in pairs(reMembers.List) do raid.InviteByName(member.name) end
+		return end
+		if group.IsLeader() then CreateRaid() return end
+		if group.GetLeaderIndex() >= 0 then ChatLog("You are not leader of this group!") return end
+		common.RegisterEventHandler(OnGroupAppeared, "EVENT_GROUP_APPEARED")
 	end
-
-	Members.InviteDateTime = common.GetLocalDateTime().overallMs
+	for _, member in pairs(reMembers.List) do group.InviteByName(member.name) end
 end
 
 function OnGroupAppeared()
     common.UnRegisterEventHandler(OnGroupAppeared, "EVENT_GROUP_APPEARED")
-	Members.IsEventGroupAppearedProcessed = nil
-	if common.GetLocalDateTime().overallMs - Members.InviteDateTime > 30000 then return end
-	if Members.IsRaid then
-		if #Members.List > 12 then raid.Create()
-		else raid.CreateSmall() end
-		Invite(true)
-	end
+	CreateRaid()
+end
+
+function OnRaidAppeared()
+	common.UnRegisterEventHandler(OnRaidAppeared, "EVENT_RAID_APPEARED")
+	Invite()
+end
+
+function CreateRaid()
+	if #reMembers.List > 12 then raid.Create()
+	else raid.CreateSmall() end
+	common.RegisterEventHandler(OnRaidAppeared, "EVENT_RAID_APPEARED")
 end
 
 function CleanTable()
-	Members.IsRaid = false
-	Members.List = {}
+	reMembers.IsRaid = false
+	reMembers.List = {}
+	userMods.SetGlobalConfigSection(configSectionName, nil)
 end
 
 function LogMembers()
-	if Members.List == nil or #Members.List == 0 then
-		ChatLog("Members list is empty!")
+	if reMembers.List == nil or #reMembers.List == 0 then
+		ChatLog("reMembers list is empty!")
 		return
 	end
-	ChatLog ("IsRaid: " .. tostring(Members.IsRaid))
-	ChatLog ("Count: " .. tostring(#Members.List))
+	ChatLog ("IsRaid: " .. tostring(reMembers.IsRaid))
+	ChatLog ("Count: " .. tostring(#reMembers.List))
 	local enum = ""
-	for _, member in pairs(Members.List) do
+	for _, member in pairs(reMembers.List) do
 		enum = enum .. userMods.FromWString(member.name) .. ", "
 	end
 	ChatLog(string.sub(enum, 0, string.len(enum) - 2) .. ".")
@@ -135,12 +143,13 @@ function OnRightClickButtonPressed()
 	CleanTable()
 
 	if raid.IsExist() then
-		Members.IsRaid = true
+		reMembers.IsRaid = true
 		local groups = raid.GetMembers()
 		for groupKey,_ in pairs(groups) do
 			for memberKey, member in pairs(groups[groupKey]) do
-				member.Pos = {groupNumber = groupKey, positionNumber = memberKey}
-				table.insert(Members.List, member)
+				local _member = { name = member.name }
+				_member.Pos = { groupNumber = groupKey, positionNumber = memberKey }
+				table.insert(reMembers.List, _member)
 			end
 		end
 	else
@@ -150,10 +159,13 @@ function OnRightClickButtonPressed()
 			return
 		end
 		for memberKey, member in pairs(members) do
-			member.Pos = {groupNumber = 0, positionNumber = memberKey}
-			table.insert(Members.List, member)
+			local _member = { name = member.name }
+			_member.Pos = { groupNumber = 0, positionNumber = memberKey }
+			table.insert(reMembers.List, _member)
 		end
 	end
+
+	userMods.SetGlobalConfigSection(configSectionName, reMembers)
 	LogMembers()
 end
 
@@ -162,7 +174,8 @@ function Init()
 	common.RegisterReactionHandler(OnLeftClickButtonPressed, "ReactionLeftClickButtonPressed")
 	common.RegisterReactionHandler(OnRightClickButtonPressed, "ReactionRightClickButtonPressed")
 
-	Members.IsRaid = false
+	local _reMembers = userMods.GetGlobalConfigSection(configSectionName)
+	if _reMembers ~= nil then reMembers = _reMembers end
 
 	-- local widgetMainPanel = mainForm:GetChildChecked("MainPanel", false)
 	local button = mainForm:GetChildChecked("Button", false)
