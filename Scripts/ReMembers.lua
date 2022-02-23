@@ -185,5 +185,5 @@ function Init()
 	DnD.Init (button, button, true, true, nil, KBF_SHIFT)
 end
 
-if avatar.IsExist() then Init()
-else common.RegisterEventHandler(Init, "EVENT_AVATAR_CREATED") end
+common.RegisterEventHandler(Init, "EVENT_AVATAR_CREATED")
+if avatar.IsExist() then Init() end
