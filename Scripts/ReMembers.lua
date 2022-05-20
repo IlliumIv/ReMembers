@@ -110,6 +110,7 @@ end
 function CreateRaid()
 	if #reMembers.List > 12 then raid.Create()
 	else raid.CreateSmall() end
+	SetLootMaster()
 	common.RegisterEventHandler(OnRaidAppeared, "EVENT_RAID_APPEARED")
 end
 
@@ -169,19 +170,31 @@ function OnRightClickButtonPressed()
 	LogMembers()
 end
 
+function SetLootMaster()
+	if loot.CanSetLootScheme() then
+		loot.SetLootScheme(LOOT_SCHEME_TYPE_MASTER)
+		common.RegisterEventHandler(SetItemQuality, "EVENT_SECOND_TIMER")
+	end
+end
+
+function SetItemQuality()
+	common.UnRegisterEventHandler(SetItemQuality, "EVENT_SECOND_TIMER")
+	loot.SetMinItemQualityForLootScheme(ITEM_QUALITY_UNCOMMON)
+end
+
 function Init()
     common.UnRegisterEventHandler(Init, "EVENT_AVATAR_CREATED")
+    common.RegisterEventHandler(SetLootMaster, "EVENT_GROUP_APPEARED")
 	common.RegisterReactionHandler(OnLeftClickButtonPressed, "ReactionLeftClickButtonPressed")
 	common.RegisterReactionHandler(OnRightClickButtonPressed, "ReactionRightClickButtonPressed")
+
+	SetLootMaster();
 
 	local _reMembers = userMods.GetGlobalConfigSection(configSectionName)
 	if _reMembers ~= nil then reMembers = _reMembers end
 
-	-- local widgetMainPanel = mainForm:GetChildChecked("MainPanel", false)
 	local button = mainForm:GetChildChecked("Button", false)
 
---	DnD.Init (wtMovable, wtReacting, fUseCfg, fLockedToScreenArea, Padding, KbFlag, Cursor)
-	-- DnD.Init(widgetMainPanel)
 	DnD.Init (button, button, true, true, nil, KBF_SHIFT)
 end
 

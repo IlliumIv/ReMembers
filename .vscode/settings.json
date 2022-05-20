@@ -11,6 +11,9 @@
         "mainForm",
         "KBF_SHIFT",
         "userMods",
-        "KBF_ALT"
+        "KBF_ALT",
+        "loot",
+        "LOOT_SCHEME_TYPE_MASTER",
+        "ITEM_QUALITY_UNCOMMON"
     ]
 }
