@@ -185,6 +185,8 @@ end
 function Init()
     common.UnRegisterEventHandler(Init, "EVENT_AVATAR_CREATED")
     common.RegisterEventHandler(SetLootMaster, "EVENT_GROUP_APPEARED")
+    common.RegisterEventHandler(SetLootMaster, "EVENT_GROUP_LEADER_CHANGED")
+    common.RegisterEventHandler(SetLootMaster, "EVENT_RAID_LEADER_CHANGED")
 	common.RegisterReactionHandler(OnLeftClickButtonPressed, "ReactionLeftClickButtonPressed")
 	common.RegisterReactionHandler(OnRightClickButtonPressed, "ReactionRightClickButtonPressed")
 
